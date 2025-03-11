@@ -41,8 +41,8 @@ jobs:
           # Fixed GitHub Pages URL for this repository
           GITHUB_PAGES_URL="https://cfausn.github.io/dlt_science"
           
-          # Update the CDN base URL in the embed.js file if needed
-          sed -i "s|const CDN_BASE_URL = 'https://cfausn.github.io/dlt_science';|const CDN_BASE_URL = '${GITHUB_PAGES_URL}';|g" dist/embed.js
+          # Update the GitHub Pages URL in the embed.js file
+          sed -i "s|const GITHUB_PAGES_URL = 'https://cfausn.github.io/dlt_science';|const GITHUB_PAGES_URL = '${GITHUB_PAGES_URL}';|g" dist/embed.js
           
           # Update the embed.js URL in index.html
           sed -i "s|src=\"embed.js\"|src=\"${GITHUB_PAGES_URL}/embed.js\"|g" dist/index.html

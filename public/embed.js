@@ -53,8 +53,8 @@
 
   // Auto-detect base URL if using known CDN or GitHub Pages
   function getBaseUrl() {
-    // For GitHub Pages deployment
-    const CDN_BASE_URL = 'https://cfausn.github.io/dlt_science';
+    // For GitHub Pages deployment - hardcoded value for deployment
+    const GITHUB_PAGES_URL = 'https://cfausn.github.io/dlt_science';
     
     // Get the current script URL
     const scripts = document.getElementsByTagName('script');
@@ -62,8 +62,8 @@
     const currentScriptUrl = currentScript.src;
     
     // If script is loaded from GitHub Pages, use that as the base URL
-    if (currentScriptUrl.includes('github.io/dlt_science')) {
-      return CDN_BASE_URL;
+    if (currentScriptUrl.includes('github.io')) {
+      return GITHUB_PAGES_URL;
     }
     
     // Otherwise extract the base URL (directory path)
@@ -92,52 +92,75 @@
       loadScript('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js');
     }
     
-    // Load our widget script
+    // Load our widget script - using the full path to the UMD file on GitHub Pages
     const widgetScript = document.createElement('script');
     widgetScript.src = `${baseUrl}/hedera-widget.umd.js`;
     widgetScript.async = true;
     widgetScript.onerror = () => handleScriptError(widgetScript.src);
     
+    document.head.appendChild(widgetScript);
+
+    // Process data attributes if present
+    function initializeFromAttributes(elementId) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      
+      // Extract data attributes
+      if (element.dataset.title) {
+        config.title = element.dataset.title;
+      }
+      
+      if (element.dataset.primaryColor) {
+        config.primaryColor = element.dataset.primaryColor;
+      }
+      
+      if (element.dataset.showFooter !== undefined) {
+        config.showFooter = element.dataset.showFooter === 'true';
+      }
+      
+      if (element.dataset.testnet !== undefined) {
+        config.testnet = element.dataset.testnet === 'true';
+      }
+      
+      if (element.dataset.maxWidth) {
+        config.maxWidth = element.dataset.maxWidth;
+      }
+      
+      if (element.dataset.receiverId) {
+        config.receiverId = element.dataset.receiverId;
+      }
+    }
+    
+    initializeFromAttributes(config.containerId);
+    
+    // Initialize the widget when the script is loaded
     widgetScript.onload = function() {
-      if (window.hederaDonationWidget) {
-        window.hederaDonationWidget(containerId, config);
+      if (window.HederaDonationWidget && window.HederaDonationWidget.initialize) {
+        window.HederaDonationWidget.initialize({
+          elementId: containerId,
+          receiverId: config.receiverId,
+          title: config.title,
+          primaryColor: config.primaryColor,
+          showFooter: config.showFooter,
+          testnet: config.testnet,
+          maxWidth: config.maxWidth
+        });
       } else {
-        console.error('Hedera Donation Widget failed to load');
-        handleScriptError(widgetScript.src);
+        console.error('Hedera Donation Widget failed to load correctly');
       }
     };
-    
-    document.head.appendChild(widgetScript);
   };
-
-  // Auto initialize if data attribute is present
+  
+  // Auto-initialize elements with data-hedera-widget attribute
   document.addEventListener('DOMContentLoaded', function() {
-    const autoInitElements = document.querySelectorAll('[data-hedera-widget]');
+    const widgetElements = document.querySelectorAll('[data-hedera-widget]');
     
-    autoInitElements.forEach(element => {
-      const config = {};
-      
-      // Parse data attributes
-      Object.keys(defaultConfig).forEach(key => {
-        const dataAttr = element.getAttribute(`data-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`);
-        
-        if (dataAttr !== null) {
-          // Convert string values to appropriate types
-          if (dataAttr === 'true' || dataAttr === 'false') {
-            config[key] = dataAttr === 'true';
-          } else if (!isNaN(dataAttr) && dataAttr !== '') {
-            config[key] = Number(dataAttr);
-          } else {
-            config[key] = dataAttr;
-          }
-        }
-      });
-      
-      // Use element's ID as container
-      config.containerId = element.id;
-      
-      // Initialize widget
-      window.initHederaDonationWidget(config);
+    widgetElements.forEach(function(element) {
+      if (element.id) {
+        window.initHederaDonationWidget({
+          containerId: element.id
+        });
+      }
     });
   });
 })(); 
