@@ -1,4 +1,8 @@
 (function() {
+  // ======= IMPORTANT: FIXED URL FOR GITHUB PAGES ========
+  // DO NOT MODIFY THIS URL - IT MUST BE EXACT
+  const GITHUB_PAGES_URL = 'https://cfausn.github.io/dlt_science';
+  
   // Default configuration
   const defaultConfig = {
     containerId: 'hedera-donation-widget',
@@ -25,6 +29,7 @@
 
   // Load required scripts
   function loadScript(url, callback) {
+    console.log('Loading script:', url);
     const script = document.createElement('script');
     script.type = 'text/javascript';
     script.src = url;
@@ -34,12 +39,17 @@
       script.onload = callback;
     }
     
+    script.onerror = () => {
+      console.error('Failed to load script:', url);
+    };
+    
     document.head.appendChild(script);
+    return script;
   }
 
   // Handle script loading errors
   function handleScriptError(scriptUrl) {
-    console.error(`Failed to load script: ${scriptUrl}`);
+    console.error(`Failed to load widget script: ${scriptUrl}`);
     const containers = document.querySelectorAll('[data-hedera-widget], #hedera-donation-widget');
     containers.forEach(container => {
       container.innerHTML = `
@@ -53,31 +63,29 @@
 
   // Auto-detect base URL if using known CDN or GitHub Pages
   function getBaseUrl() {
-    // For GitHub Pages deployment - hardcoded value for deployment
-    const GITHUB_PAGES_URL = 'https://cfausn.github.io/dlt_science';
-    
-    // Get the current script URL
-    const scripts = document.getElementsByTagName('script');
-    const currentScript = scripts[scripts.length - 1];
-    const currentScriptUrl = currentScript.src;
-    console.log('Current script URL:', currentScriptUrl);
-    
-    // If script is loaded from GitHub Pages, use that as the base URL
-    if (currentScriptUrl.includes('github.io')) {
-      console.log('Using GitHub Pages URL:', GITHUB_PAGES_URL);
+    // Check if we're on GitHub Pages by examining the hostname
+    if (window.location.hostname.includes('github.io')) {
+      console.log('Detected GitHub Pages environment');
       return GITHUB_PAGES_URL;
     }
     
-    // Otherwise extract the base URL (directory path)
+    // For local development or other environments
+    const scripts = document.getElementsByTagName('script');
+    const currentScript = scripts[scripts.length - 1];
+    const currentScriptUrl = currentScript.src;
+    
     const urlParts = currentScriptUrl.split('/');
     urlParts.pop(); // Remove the script filename
-    const localUrl = urlParts.join('/');
-    console.log('Using local URL:', localUrl);
-    return localUrl;
+    const baseUrl = urlParts.join('/');
+    
+    console.log('Using base URL for local development:', baseUrl);
+    return baseUrl;
   }
 
   // Main initialization function
   window.initHederaDonationWidget = function(customConfig = {}) {
+    console.log('Initializing Hedera Donation Widget');
+    
     // Merge configurations
     const config = { ...defaultConfig, ...customConfig };
     
@@ -86,37 +94,78 @@
     
     // Determine the base URL for resources
     const baseUrl = getBaseUrl();
+    console.log('Base URL for resources:', baseUrl);
     
-    // Load React and ReactDOM if not already available
-    if (!window.React) {
-      loadScript('https://unpkg.com/react@18/umd/react.production.min.js');
-    }
-    
-    if (!window.ReactDOM) {
-      loadScript('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js');
-    }
-    
-    // Load our widget script - using the full path to the UMD file
-    const widgetScript = document.createElement('script');
-    
-    if (window.location.hostname.includes('github.io')) {
-      // Force absolute URL for GitHub Pages
-      widgetScript.src = 'https://cfausn.github.io/dlt_science/hedera-widget.umd.js';
-      console.log('Loading from GitHub Pages (force):', widgetScript.src);
-    } else {
-      // Local development
-      widgetScript.src = `${baseUrl}/hedera-widget.umd.js`;
-      console.log('Loading locally:', widgetScript.src);
-    }
-    
-    widgetScript.async = true;
-    widgetScript.onerror = () => {
-      console.error('Failed to load widget from:', widgetScript.src);
-      handleScriptError(widgetScript.src);
+    // Load React and ReactDOM (in sequence to ensure proper loading order)
+    const loadReactDom = function() {
+      console.log('Loading ReactDOM...');
+      loadScript('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js', function() {
+        console.log('ReactDOM loaded successfully');
+        // Load the widget script after React and ReactDOM are loaded
+        loadWidget();
+      });
     };
     
-    document.head.appendChild(widgetScript);
-
+    const loadReact = function() {
+      console.log('Loading React...');
+      loadScript('https://unpkg.com/react@18/umd/react.production.min.js', function() {
+        console.log('React loaded successfully');
+        if (!window.ReactDOM) {
+          loadReactDom();
+        } else {
+          loadWidget();
+        }
+      });
+    };
+    
+    // Function to load the widget script
+    const loadWidget = function() {
+      console.log('Loading widget script...');
+      
+      // Use the absolute URL for GitHub Pages, always with the /dlt_science/ path
+      let widgetUrl;
+      if (window.location.hostname.includes('github.io')) {
+        widgetUrl = GITHUB_PAGES_URL + '/hedera-widget.umd.js';
+        console.log('Using GitHub Pages URL for widget:', widgetUrl);
+      } else {
+        widgetUrl = baseUrl + '/hedera-widget.umd.js';
+        console.log('Using local URL for widget:', widgetUrl);
+      }
+      
+      const widgetScript = loadScript(widgetUrl);
+      
+      widgetScript.onerror = function() {
+        handleScriptError(widgetUrl);
+      };
+      
+      widgetScript.onload = function() {
+        console.log('Widget script loaded successfully');
+        if (window.HederaDonationWidget && window.HederaDonationWidget.initialize) {
+          console.log('Initializing widget in container:', containerId);
+          window.HederaDonationWidget.initialize({
+            elementId: containerId,
+            receiverId: config.receiverId,
+            title: config.title,
+            primaryColor: config.primaryColor,
+            showFooter: config.showFooter,
+            testnet: config.testnet,
+            maxWidth: config.maxWidth
+          });
+        } else {
+          console.error('Hedera Donation Widget failed to load correctly. Window.HederaDonationWidget:', window.HederaDonationWidget);
+        }
+      };
+    };
+    
+    // Start the loading sequence
+    if (!window.React) {
+      loadReact();
+    } else if (!window.ReactDOM) {
+      loadReactDom();
+    } else {
+      loadWidget();
+    }
+    
     // Process data attributes if present
     function initializeFromAttributes(elementId) {
       const element = document.getElementById(elementId);
@@ -149,23 +198,6 @@
     }
     
     initializeFromAttributes(config.containerId);
-    
-    // Initialize the widget when the script is loaded
-    widgetScript.onload = function() {
-      if (window.HederaDonationWidget && window.HederaDonationWidget.initialize) {
-        window.HederaDonationWidget.initialize({
-          elementId: containerId,
-          receiverId: config.receiverId,
-          title: config.title,
-          primaryColor: config.primaryColor,
-          showFooter: config.showFooter,
-          testnet: config.testnet,
-          maxWidth: config.maxWidth
-        });
-      } else {
-        console.error('Hedera Donation Widget failed to load correctly');
-      }
-    };
   };
   
   // Auto-initialize elements with data-hedera-widget attribute
