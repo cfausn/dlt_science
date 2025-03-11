@@ -9,7 +9,7 @@ const appMetadata = {
   name: "Hedera Widget",
   description: "A donation widget for Hedera",
   icons: ["https://www.hashpack.app/img/favicon.png"],
-  url: window.location.origin
+  url: "https://cfausn.github.io/dlt_science" // Use our GitHub Pages URL consistently
 };
 
 // WalletConnect project ID - from the docs
@@ -185,17 +185,34 @@ export const useHashPack = () => {
       try {
         debugConnection("Initializing HashConnect...");
         
-        // Create a fresh instance
+        // Create a fresh instance with more robust initialization
         if (!hashconnect) {
-          hashconnect = new HashConnect(LedgerId.TESTNET, PROJECT_ID, appMetadata, true);
+          console.log("Creating new HashConnect instance with metadata:", appMetadata);
+          try {
+            // Use a simpler initialization approach
+            hashconnect = new HashConnect(LedgerId.TESTNET, PROJECT_ID, appMetadata, true);
+            console.log("HashConnect constructor completed successfully");
+          } catch (initError) {
+            console.error("Error in HashConnect constructor:", initError);
+            throw initError;
+          }
           debugConnection("Created HashConnect instance", {methods: Object.keys(hashconnect)});
         }
         
         // Setup events before initialization
         setupHashConnectEvents();
         
-        // Initialize HashConnect
-        const initData: any = await hashconnect.init();
+        // Initialize HashConnect with debugging
+        let initData: any;
+        try {
+          console.log("About to call hashconnect.init()");
+          initData = await hashconnect.init();
+          console.log("HashConnect init() completed successfully");
+        } catch (initError) {
+          console.error("Error in hashconnect.init():", initError);
+          throw initError;
+        }
+        
         debugConnection("HashConnect initialized with data", initData);
         
         // Save init data
@@ -227,15 +244,7 @@ export const useHashPack = () => {
     
     // Cleanup on unmount
     return () => {
-      if (hashconnect) {
-        try {
-          hashconnect.pairingEvent.off(() => {});
-          hashconnect.disconnectionEvent.off(() => {});
-          hashconnect.connectionStatusChangeEvent.off(() => {});
-        } catch (e) {
-          // Ignore cleanup errors
-        }
-      }
+      // Any cleanup code here
     };
   }, [setupHashConnectEvents, fetchAccountBalance]);
   
@@ -279,11 +288,27 @@ export const useHashPack = () => {
     
     try {
       debugConnection("Opening HashPack connection modal...");
+      console.log("HashConnect instance:", hashconnect);
+      console.log("HashConnect methods available:", Object.keys(hashconnect));
+      console.log("App metadata being used:", appMetadata);
+      
       setConnectionState(HashConnectConnectionState.Connecting);
       
-      // Open the pairing modal
-      hashconnect.openPairingModal();
-      debugConnection("Pairing modal opened");
+      // Open the pairing modal with additional logging
+      try {
+        hashconnect.openPairingModal();
+        debugConnection("Pairing modal opened successfully");
+      } catch (modalError) {
+        console.error("Error opening pairing modal:", modalError);
+        
+        // Try to check if hashpack is available in window
+        if ('hashconnect' in window) {
+          console.log("Global HashConnect object is available, but modal failed to open");
+        }
+        
+        // Re-throw to be caught by outer catch block
+        throw modalError;
+      }
     } catch (error) {
       console.error("Error connecting to HashPack:", error);
       setConnectionState(HashConnectConnectionState.Disconnected);
