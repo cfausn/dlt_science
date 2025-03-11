@@ -1,10 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
+import App, { WidgetConfig } from './App.tsx'
 import './index.css'
 
 // Function to create and export the widget
-export function createHederaDonationWidget(elementId: string, config = {}) {
+export function createHederaDonationWidget(elementId: string, config: Partial<WidgetConfig> = {}) {
   const targetElement = document.getElementById(elementId);
   if (!targetElement) {
     console.error(`Element with id "${elementId}" not found.`);
@@ -13,7 +13,7 @@ export function createHederaDonationWidget(elementId: string, config = {}) {
   
   ReactDOM.createRoot(targetElement).render(
     <React.StrictMode>
-      <App />
+      <App {...config} />
     </React.StrictMode>,
   );
 }

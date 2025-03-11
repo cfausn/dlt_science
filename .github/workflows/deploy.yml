@@ -1,0 +1,78 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Create dist directory if it doesn't exist
+        run: mkdir -p dist
+
+      - name: Copy embed script to dist
+        run: |
+          cp public/embed.js dist/
+          cp public/demo.html dist/index.html
+          cp public/favicon.svg dist/
+
+      - name: Update CDN URLs
+        run: |
+          # Get the GitHub Pages URL
+          GITHUB_PAGES_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
+          
+          # Update the CDN URL in the embed.js file
+          sed -i "s|https://your-cdn-url/hedera-widget.umd.js|${GITHUB_PAGES_URL}/hedera-widget.umd.js|g" dist/embed.js
+          
+          # Update the embed.js URL in demo.html (now index.html)
+          sed -i "s|src=\"embed.js\"|src=\"${GITHUB_PAGES_URL}/embed.js\"|g" dist/index.html
+          
+          # Replace the GitHub username placeholder in the HTML
+          sed -i "s|GITHUB_USERNAME|${GITHUB_REPOSITORY_OWNER}|g" dist/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4 

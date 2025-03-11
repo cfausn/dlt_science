@@ -37,6 +37,33 @@
     document.head.appendChild(script);
   }
 
+  // Handle script loading errors
+  function handleScriptError(scriptUrl) {
+    console.error(`Failed to load script: ${scriptUrl}`);
+    const containers = document.querySelectorAll('[data-hedera-widget], #hedera-donation-widget');
+    containers.forEach(container => {
+      container.innerHTML = `
+        <div style="border: 1px solid #f44336; border-radius: 4px; padding: 16px; background-color: #ffebee; color: #d32f2f;">
+          <p style="margin: 0; font-weight: bold;">Widget Loading Error</p>
+          <p style="margin: 8px 0 0;">Could not load the Hedera donation widget. Please check your connection and try again.</p>
+        </div>
+      `;
+    });
+  }
+
+  // Auto-detect base URL if using known CDN or GitHub Pages
+  function getBaseUrl() {
+    // Get the current script URL
+    const scripts = document.getElementsByTagName('script');
+    const currentScript = scripts[scripts.length - 1];
+    const currentScriptUrl = currentScript.src;
+    
+    // Extract the base URL (directory path)
+    const urlParts = currentScriptUrl.split('/');
+    urlParts.pop(); // Remove the script filename
+    return urlParts.join('/');
+  }
+
   // Main initialization function
   window.initHederaDonationWidget = function(customConfig = {}) {
     // Merge configurations
@@ -44,6 +71,9 @@
     
     // Create container
     const containerId = createContainer(config);
+    
+    // Determine the base URL for resources
+    const baseUrl = getBaseUrl();
     
     // Load React and ReactDOM if not already available
     if (!window.React) {
@@ -55,13 +85,21 @@
     }
     
     // Load our widget script
-    loadScript('https://your-cdn-url/hedera-widget.umd.js', function() {
+    const widgetScript = document.createElement('script');
+    widgetScript.src = `${baseUrl}/hedera-widget.umd.js`;
+    widgetScript.async = true;
+    widgetScript.onerror = () => handleScriptError(widgetScript.src);
+    
+    widgetScript.onload = function() {
       if (window.hederaDonationWidget) {
         window.hederaDonationWidget(containerId, config);
       } else {
         console.error('Hedera Donation Widget failed to load');
+        handleScriptError(widgetScript.src);
       }
-    });
+    };
+    
+    document.head.appendChild(widgetScript);
   };
 
   // Auto initialize if data attribute is present
