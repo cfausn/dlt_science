@@ -53,12 +53,20 @@
 
   // Auto-detect base URL if using known CDN or GitHub Pages
   function getBaseUrl() {
+    // For GitHub Pages deployment
+    const CDN_BASE_URL = 'https://cfausn.github.io/dlt_science';
+    
     // Get the current script URL
     const scripts = document.getElementsByTagName('script');
     const currentScript = scripts[scripts.length - 1];
     const currentScriptUrl = currentScript.src;
     
-    // Extract the base URL (directory path)
+    // If script is loaded from GitHub Pages, use that as the base URL
+    if (currentScriptUrl.includes('github.io/dlt_science')) {
+      return CDN_BASE_URL;
+    }
+    
+    // Otherwise extract the base URL (directory path)
     const urlParts = currentScriptUrl.split('/');
     urlParts.pop(); // Remove the script filename
     return urlParts.join('/');

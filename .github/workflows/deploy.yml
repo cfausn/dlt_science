@@ -36,19 +36,19 @@ jobs:
         run: npm run build
         # The build script now handles copying demo.html as index.html, embed.js, and favicon.svg
 
-      - name: Update CDN URLs
+      - name: Update URLs for GitHub Pages
         run: |
-          # Get the GitHub Pages URL
-          GITHUB_PAGES_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}"
+          # Fixed GitHub Pages URL for this repository
+          GITHUB_PAGES_URL="https://cfausn.github.io/dlt_science"
           
-          # Update the CDN URL in the embed.js file
-          sed -i "s|https://your-cdn-url/hedera-widget.umd.js|${GITHUB_PAGES_URL}/hedera-widget.umd.js|g" dist/embed.js
+          # Update the CDN base URL in the embed.js file if needed
+          sed -i "s|const CDN_BASE_URL = 'https://cfausn.github.io/dlt_science';|const CDN_BASE_URL = '${GITHUB_PAGES_URL}';|g" dist/embed.js
           
           # Update the embed.js URL in index.html
           sed -i "s|src=\"embed.js\"|src=\"${GITHUB_PAGES_URL}/embed.js\"|g" dist/index.html
           
           # Replace the GitHub username placeholder in the HTML
-          sed -i "s|GITHUB_USERNAME|${GITHUB_REPOSITORY_OWNER}|g" dist/index.html
+          sed -i "s|GITHUB_USERNAME|cfausn|g" dist/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
