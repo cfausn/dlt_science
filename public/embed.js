@@ -29,7 +29,6 @@
 
   // Load required scripts
   function loadScript(url, callback) {
-    console.log('Loading script:', url);
     const script = document.createElement('script');
     script.type = 'text/javascript';
     script.src = url;
@@ -65,7 +64,6 @@
   function getBaseUrl() {
     // Check if we're on GitHub Pages by examining the hostname
     if (window.location.hostname.includes('github.io')) {
-      console.log('Detected GitHub Pages environment');
       return GITHUB_PAGES_URL;
     }
     
@@ -76,16 +74,11 @@
     
     const urlParts = currentScriptUrl.split('/');
     urlParts.pop(); // Remove the script filename
-    const baseUrl = urlParts.join('/');
-    
-    console.log('Using base URL for local development:', baseUrl);
-    return baseUrl;
+    return urlParts.join('/');
   }
 
   // Main initialization function
   window.initHederaDonationWidget = function(customConfig = {}) {
-    console.log('Initializing Hedera Donation Widget');
-    
     // Merge configurations
     const config = { ...defaultConfig, ...customConfig };
     
@@ -94,22 +87,17 @@
     
     // Determine the base URL for resources
     const baseUrl = getBaseUrl();
-    console.log('Base URL for resources:', baseUrl);
     
     // Load React and ReactDOM (in sequence to ensure proper loading order)
     const loadReactDom = function() {
-      console.log('Loading ReactDOM...');
       loadScript('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js', function() {
-        console.log('ReactDOM loaded successfully');
         // Load the widget script after React and ReactDOM are loaded
         loadWidget();
       });
     };
     
     const loadReact = function() {
-      console.log('Loading React...');
       loadScript('https://unpkg.com/react@18/umd/react.production.min.js', function() {
-        console.log('React loaded successfully');
         if (!window.ReactDOM) {
           loadReactDom();
         } else {
@@ -120,16 +108,12 @@
     
     // Function to load the widget script
     const loadWidget = function() {
-      console.log('Loading widget script...');
-      
       // Use the absolute URL for GitHub Pages, always with the /dlt_science/ path
       let widgetUrl;
       if (window.location.hostname.includes('github.io')) {
         widgetUrl = GITHUB_PAGES_URL + '/hedera-widget.umd.js';
-        console.log('Using GitHub Pages URL for widget:', widgetUrl);
       } else {
         widgetUrl = baseUrl + '/hedera-widget.umd.js';
-        console.log('Using local URL for widget:', widgetUrl);
       }
       
       const widgetScript = loadScript(widgetUrl);
@@ -139,43 +123,27 @@
       };
       
       widgetScript.onload = function() {
-        console.log('Widget script loaded successfully');
+        // Try to directly access the function
+        const createFn = window.HederaDonationWidget.createHederaDonationWidget;
         
-        // Debug the HederaDonationWidget object in detail
-        console.log('HederaDonationWidget object:', window.HederaDonationWidget);
-        
-        if (window.HederaDonationWidget) {
-          console.log('Properties of HederaDonationWidget:');
-          for (var prop in window.HederaDonationWidget) {
-            console.log(`- ${prop}: ${typeof window.HederaDonationWidget[prop]}`);
-          }
-          
-          // Now try to directly access the function
-          const createFn = window.HederaDonationWidget.createHederaDonationWidget;
-          console.log('Direct access to createHederaDonationWidget:', createFn);
-          
-          if (createFn && typeof createFn === 'function') {
-            console.log('Using createHederaDonationWidget function');
-            try {
-              createFn(containerId, {
-                receiverId: config.receiverId,
-                title: config.title,
-                primaryColor: config.primaryColor,
-                showFooter: config.showFooter,
-                testnet: config.testnet,
-                maxWidth: config.maxWidth
-              });
-              console.log('Widget initialization called successfully');
-              return;
-            } catch (error) {
-              console.error('Error initializing widget:', error);
-            }
+        if (createFn && typeof createFn === 'function') {
+          try {
+            createFn(containerId, {
+              receiverId: config.receiverId,
+              title: config.title,
+              primaryColor: config.primaryColor,
+              showFooter: config.showFooter,
+              testnet: config.testnet,
+              maxWidth: config.maxWidth
+            });
+            return;
+          } catch (error) {
+            console.error('Error initializing widget:', error);
           }
         }
         
         // Try to access the function directly from the window object
         if (window.createHederaDonationWidget && typeof window.createHederaDonationWidget === 'function') {
-          console.log('Found global createHederaDonationWidget function');
           try {
             window.createHederaDonationWidget(containerId, {
               receiverId: config.receiverId,
@@ -185,7 +153,6 @@
               testnet: config.testnet,
               maxWidth: config.maxWidth
             });
-            console.log('Widget initialization called successfully');
             return;
           } catch (error) {
             console.error('Error initializing widget with global function:', error);
@@ -194,7 +161,6 @@
         
         // As a last resort, try to use the default export
         if (typeof window.HederaDonationWidget === 'function') {
-          console.log('Using HederaDonationWidget as a function');
           try {
             window.HederaDonationWidget(containerId, {
               receiverId: config.receiverId,
@@ -204,14 +170,13 @@
               testnet: config.testnet,
               maxWidth: config.maxWidth
             });
-            console.log('Widget initialization called successfully');
             return;
           } catch (error) {
             console.error('Error initializing widget with default export:', error);
           }
         }
         
-        console.error('All widget initialization methods failed. Unable to initialize widget.');
+        console.error('Failed to initialize widget. Please check browser console for errors.');
       };
     };
     

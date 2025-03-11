@@ -255,8 +255,8 @@ export const useHashPack = () => {
       // Initial fetch
       fetchAccountBalance(accountId);
       
-      // Set up interval for regular updates (every 10 seconds)
-      intervalId = setInterval(refreshBalances, 10000);
+      // Set up interval for regular updates (every 1 second)
+      intervalId = setInterval(refreshBalances, 1000);
       debugConnection("Started balance auto-refresh");
     }
 
