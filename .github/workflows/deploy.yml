@@ -35,14 +35,11 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Create dist directory if it doesn't exist
-        run: mkdir -p dist
-
-      - name: Copy embed script to dist
+      - name: Copy static assets to dist
         run: |
           cp public/embed.js dist/
-          cp public/demo.html dist/index.html
           cp public/favicon.svg dist/
+          # No longer copying demo.html as index.html - our build process creates index.html directly
 
       - name: Update CDN URLs
         run: |
@@ -52,7 +49,7 @@ jobs:
           # Update the CDN URL in the embed.js file
           sed -i "s|https://your-cdn-url/hedera-widget.umd.js|${GITHUB_PAGES_URL}/hedera-widget.umd.js|g" dist/embed.js
           
-          # Update the embed.js URL in demo.html (now index.html)
+          # Update the embed.js URL in index.html
           sed -i "s|src=\"embed.js\"|src=\"${GITHUB_PAGES_URL}/embed.js\"|g" dist/index.html
           
           # Replace the GitHub username placeholder in the HTML

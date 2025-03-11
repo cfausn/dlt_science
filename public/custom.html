@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customized Hedera Donation Widget Demo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Arial', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f5f5f5;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    header {
+      margin-bottom: 30px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 20px;
+    }
+    
+    header h1 {
+      color: #ff6b6b;
+      margin-bottom: 10px;
+    }
+    
+    .back-link {
+      display: inline-block;
+      margin-top: 15px;
+      color: #ff6b6b;
+      text-decoration: none;
+    }
+    
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    
+    .widget-demo {
+      margin: 30px 0;
+    }
+    
+    .widget-section {
+      background-color: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    #custom-donation-widget {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .implementation {
+      background-color: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    code {
+      display: block;
+      background-color: #f1f1f1;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      margin: 15px 0;
+    }
+    
+    .debug-panel {
+      background-color: #ffebee;
+      border: 1px solid #ffcdd2;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    .debug-button {
+      display: inline-block;
+      background-color: #ff6b6b;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      margin-right: 10px;
+      transition: background-color 0.3s;
+    }
+    
+    .debug-button:hover {
+      background-color: #e05050;
+    }
+    
+    .debug-button.danger {
+      background-color: #f44336;
+    }
+    
+    .debug-button.danger:hover {
+      background-color: #d32f2f;
+    }
+    
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #777;
+      font-size: 0.9em;
+    }
+    
+    #status-message {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Customized Hedera Donation Widget Demo</h1>
+      <p>A demonstration of the widget with custom styling and configuration</p>
+      <a href="index.html" class="back-link">← Back to Main Page</a>
+    </header>
+    
+    <div class="widget-demo">
+      <h2>Customized Widget</h2>
+      <p>This is the Hedera donation widget with custom styling. Notice the different color scheme, font styling, and no footer.</p>
+      
+      <div class="widget-section">
+        <div id="custom-donation-widget">
+          <div style="text-align: center; padding: 20px; color: #777;">
+            Loading widget...
+          </div>
+        </div>
+      </div>
+      
+      <div class="implementation">
+        <h3>Implementation Code</h3>
+        <p>Here's how to add this customized widget to your website:</p>
+        <code>
+&lt;!-- 1. Add a container for the widget --&gt;<br>
+&lt;div id="custom-donation-widget"&gt;&lt;/div&gt;<br><br>
+&lt;!-- 2. Add the script and initialize the widget with custom options --&gt;<br>
+&lt;script src="embed.js"&gt;&lt;/script&gt;<br>
+&lt;script&gt;<br>
+  window.initHederaDonationWidget({<br>
+    containerId: 'custom-donation-widget',<br>
+    receiverId: '0.0.5680094', // Your Hedera account ID<br>
+    title: 'Custom Donation Widget',<br>
+    primaryColor: '#ff6b6b', // Custom color<br>
+    showFooter: false, // Hide footer<br>
+    testnet: true,<br>
+    maxWidth: '600px',<br>
+    customStyles: {<br>
+      fontFamily: 'Arial, sans-serif',<br>
+      borderRadius: '10px',<br>
+      padding: '20px'<br>
+    }<br>
+  });<br>
+&lt;/script&gt;
+        </code>
+      </div>
+      
+      <div class="debug-panel">
+        <h3>Debug Panel</h3>
+        <p>If you're experiencing issues with the widget, try these actions:</p>
+        <button id="reload-widget" class="debug-button">Reload Widget</button>
+        <button id="clear-storage" class="debug-button danger">Clear Browser Storage</button>
+        <div id="status-message"></div>
+      </div>
+    </div>
+    
+    <footer>
+      <p>This demo runs on the Hedera Testnet. No real funds are used.</p>
+    </footer>
+  </div>
+  
+  <!-- Direct initialization approach -->
+  <script>
+    // Helper function to show status messages
+    function showStatus(message, bgColor, textColor) {
+      const statusMessage = document.getElementById('status-message');
+      statusMessage.textContent = message;
+      statusMessage.style.display = 'block';
+      statusMessage.style.backgroundColor = bgColor || '#e3f2fd';
+      statusMessage.style.color = textColor || '#0d47a1';
+      statusMessage.style.padding = '10px';
+      statusMessage.style.borderRadius = '4px';
+      
+      console.log('[Status]', message);
+      
+      // Auto-hide after 5 seconds
+      setTimeout(function() {
+        statusMessage.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Clear browser storage on first load to prevent conflicts
+    function clearBrowserStorage() {
+      console.log('Clearing browser storage to prevent conflicts');
+      try {
+        // Clear localStorage and sessionStorage
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Remove any HashConnect specific items
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.includes('hashconnect')) {
+            localStorage.removeItem(key);
+          }
+        }
+        
+        // Set flag to indicate we've done the initial clearing
+        sessionStorage.setItem('initial_storage_cleared', 'true');
+        
+        console.log('Browser storage cleared successfully');
+      } catch (error) {
+        console.error('Error clearing storage:', error);
+      }
+    }
+    
+    // Check if this is first load and clear storage if needed
+    if (!sessionStorage.getItem('initial_storage_cleared')) {
+      clearBrowserStorage();
+    }
+    
+    // Function to load widget script
+    function loadWidgetScript() {
+      console.log('Loading widget script...');
+      
+      // Show loading message
+      document.getElementById('custom-donation-widget').innerHTML = 
+        '<div style="text-align: center; padding: 20px; color: #777;">Loading widget...</div>';
+      
+      const script = document.createElement('script');
+      script.src = '/hedera-widget.umd.js';
+      script.async = true;
+      
+      script.onload = function() {
+        console.log('Widget script loaded successfully');
+        initializeWidget();
+      };
+      
+      script.onerror = function() {
+        console.error('Failed to load widget script');
+        document.getElementById('custom-donation-widget').innerHTML = 
+          '<div style="text-align: center; padding: 20px; color: #d32f2f;">' +
+          '<p style="font-weight: bold;">Loading Error</p>' +
+          '<p>Could not load the widget script.</p>' +
+          '<p>Please check your connection and try again.</p>' +
+          '</div>';
+      };
+      
+      document.body.appendChild(script);
+    }
+    
+    // Initialize the widget once the script is loaded
+    function initializeWidget() {
+      // Show initializing message
+      document.getElementById('custom-donation-widget').innerHTML = 
+        '<div style="text-align: center; padding: 20px; color: #777;">Initializing widget...</div>';
+      
+      console.log('Initializing custom widget');
+      
+      try {
+        // Wait to ensure all React internal structures are ready
+        setTimeout(function() {
+          if (typeof window.hederaDonationWidget === 'function') {
+            window.hederaDonationWidget('custom-donation-widget', {
+              receiverId: '0.0.5680094',
+              title: 'Custom Donation Widget',
+              primaryColor: '#ff6b6b',
+              showFooter: false,
+              testnet: true,
+              maxWidth: '600px',
+              customStyles: {
+                fontFamily: 'Arial, sans-serif',
+                borderRadius: '10px',
+                padding: '20px'
+              }
+            });
+            console.log('Widget initialized successfully');
+          } else {
+            console.error('Widget initialization function not found');
+            document.getElementById('custom-donation-widget').innerHTML = 
+              '<div style="text-align: center; padding: 20px; color: #d32f2f;">' +
+              '<p style="font-weight: bold;">Initialization Error</p>' +
+              '<p>Widget initialization function not found.</p>' +
+              '<p>Please try clearing browser storage below.</p>' +
+              '</div>';
+          }
+        }, 500);
+      } catch (error) {
+        console.error('Error initializing widget:', error);
+        document.getElementById('custom-donation-widget').innerHTML = 
+          '<div style="text-align: center; padding: 20px; color: #d32f2f;">' +
+          '<p style="font-weight: bold;">Initialization Error</p>' +
+          '<p>' + error.message + '</p>' +
+          '<p>Please try clearing browser storage below.</p>' +
+          '</div>';
+      }
+    }
+    
+    // Initial script loading
+    window.addEventListener('DOMContentLoaded', function() {
+      // Load widget script after a short delay
+      setTimeout(loadWidgetScript, 100);
+      
+      // Set up debug buttons
+      document.getElementById('reload-widget').addEventListener('click', function() {
+        showStatus('Reloading widget...');
+        
+        // Force reload by setting innerHTML to empty and re-loading
+        document.getElementById('custom-donation-widget').innerHTML = 
+          '<div style="text-align: center; padding: 20px; color: #777;">Reloading widget...</div>';
+        loadWidgetScript();
+      });
+      
+      document.getElementById('clear-storage').addEventListener('click', function() {
+        clearBrowserStorage();
+        showStatus('Browser storage cleared successfully. Reloading widget...', '#e8f5e9', '#2e7d32');
+        
+        // Reload the widget
+        document.getElementById('custom-donation-widget').innerHTML = 
+          '<div style="text-align: center; padding: 20px; color: #777;">Reloading widget...</div>';
+        setTimeout(loadWidgetScript, 300);
+      });
+    });
+  </script>
+</body>
+</html> 

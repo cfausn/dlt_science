@@ -39,3 +39,8 @@ declare global {
     hederaDonationWidget: typeof createHederaDonationWidget;
   }
 }
+
+// Make sure widget is available globally
+if (typeof window !== 'undefined') {
+  (window as any).hederaDonationWidget = createHederaDonationWidget;
+}
