@@ -60,10 +60,17 @@
     });
   }
 
+  // Check if the current script was loaded from GitHub Pages
+  function isLoadedFromGitHubPages() {
+    const scripts = document.getElementsByTagName('script');
+    const currentScript = scripts[scripts.length - 1];
+    return currentScript && currentScript.src && currentScript.src.includes('github.io');
+  }
+
   // Auto-detect base URL if using known CDN or GitHub Pages
   function getBaseUrl() {
-    // Check if we're on GitHub Pages by examining the hostname
-    if (window.location.hostname.includes('github.io')) {
+    // If script was loaded from GitHub Pages, always use the GitHub Pages URL
+    if (isLoadedFromGitHubPages()) {
       return GITHUB_PAGES_URL;
     }
     
@@ -108,13 +115,9 @@
     
     // Function to load the widget script
     const loadWidget = function() {
-      // Use the absolute URL for GitHub Pages, always with the /dlt_science/ path
-      let widgetUrl;
-      if (window.location.hostname.includes('github.io')) {
-        widgetUrl = GITHUB_PAGES_URL + '/hedera-widget.umd.js';
-      } else {
-        widgetUrl = baseUrl + '/hedera-widget.umd.js';
-      }
+      // ALWAYS use the absolute URL from GitHub Pages for the UMD file
+      // This ensures it works when embedded in any website
+      const widgetUrl = GITHUB_PAGES_URL + '/hedera-widget.umd.js';
       
       const widgetScript = loadScript(widgetUrl);
       
