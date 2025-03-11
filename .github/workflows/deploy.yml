@@ -41,10 +41,7 @@ jobs:
           # Fixed GitHub Pages URL for this repository
           GITHUB_PAGES_URL="https://cfausn.github.io/dlt_science"
           
-          # Update the GitHub Pages URL in the embed.js file
-          sed -i "s|const GITHUB_PAGES_URL = 'https://cfausn.github.io/dlt_science';|const GITHUB_PAGES_URL = '${GITHUB_PAGES_URL}';|g" dist/embed.js
-          
-          # Update the embed.js URL in index.html
+          # Update the embed.js URL in index.html (no need to update embed.js since we use hardcoded URLs)
           sed -i "s|src=\"embed.js\"|src=\"${GITHUB_PAGES_URL}/embed.js\"|g" dist/index.html
           
           # Replace the GitHub username placeholder in the HTML

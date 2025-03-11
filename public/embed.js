@@ -60,16 +60,20 @@
     const scripts = document.getElementsByTagName('script');
     const currentScript = scripts[scripts.length - 1];
     const currentScriptUrl = currentScript.src;
+    console.log('Current script URL:', currentScriptUrl);
     
     // If script is loaded from GitHub Pages, use that as the base URL
     if (currentScriptUrl.includes('github.io')) {
+      console.log('Using GitHub Pages URL:', GITHUB_PAGES_URL);
       return GITHUB_PAGES_URL;
     }
     
     // Otherwise extract the base URL (directory path)
     const urlParts = currentScriptUrl.split('/');
     urlParts.pop(); // Remove the script filename
-    return urlParts.join('/');
+    const localUrl = urlParts.join('/');
+    console.log('Using local URL:', localUrl);
+    return localUrl;
   }
 
   // Main initialization function
@@ -92,11 +96,24 @@
       loadScript('https://unpkg.com/react-dom@18/umd/react-dom.production.min.js');
     }
     
-    // Load our widget script - using the full path to the UMD file on GitHub Pages
+    // Load our widget script - using the full path to the UMD file
     const widgetScript = document.createElement('script');
-    widgetScript.src = `${baseUrl}/hedera-widget.umd.js`;
+    
+    if (window.location.hostname.includes('github.io')) {
+      // Force absolute URL for GitHub Pages
+      widgetScript.src = 'https://cfausn.github.io/dlt_science/hedera-widget.umd.js';
+      console.log('Loading from GitHub Pages (force):', widgetScript.src);
+    } else {
+      // Local development
+      widgetScript.src = `${baseUrl}/hedera-widget.umd.js`;
+      console.log('Loading locally:', widgetScript.src);
+    }
+    
     widgetScript.async = true;
-    widgetScript.onerror = () => handleScriptError(widgetScript.src);
+    widgetScript.onerror = () => {
+      console.error('Failed to load widget from:', widgetScript.src);
+      handleScriptError(widgetScript.src);
+    };
     
     document.head.appendChild(widgetScript);
 
