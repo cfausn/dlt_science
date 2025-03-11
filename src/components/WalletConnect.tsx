@@ -117,35 +117,6 @@ export const WalletConnect: React.FC = () => {
     previousConnectionState.current = connectionState;
   }, [connectionState, accountId, toast]);
 
-  // Handle reconnect
-  const handleReconnect = async () => {
-    logConnection("Attempting to reconnect");
-    
-    try {
-      // First disconnect to clear any stale state
-      await disconnect();
-      
-      // Wait a moment before reconnecting
-      setTimeout(async () => {
-        try {
-          await connect();
-          logConnection("Reconnect initiated");
-        } catch (reconnectError) {
-          logConnection("Reconnect failed", reconnectError);
-          toast({
-            title: 'Reconnect Failed',
-            description: 'Could not reconnect to HashPack. Please try again.',
-            status: 'error',
-            duration: 3000,
-            isClosable: true,
-          });
-        }
-      }, 500);
-    } catch (error) {
-      logConnection("Disconnect before reconnect failed", error);
-    }
-  };
-
   // Format account ID for display (shortening it if needed)
   const formatAccountId = (id: string) => {
     if (id.length <= 15) return id;

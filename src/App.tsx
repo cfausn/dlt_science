@@ -1,4 +1,4 @@
-import { ChakraProvider, Box, Container, VStack, ThemeProvider, extendTheme } from '@chakra-ui/react';
+import { ChakraProvider, Box, Container, VStack, extendTheme } from '@chakra-ui/react';
 import { Widget } from './components/Widget';
 
 export interface WidgetConfig {

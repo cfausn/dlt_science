@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { HashConnect, HashConnectConnectionState, SessionData } from 'hashconnect';
+import { HashConnect, HashConnectConnectionState } from 'hashconnect';
 import { useToast, Box, Text, Link } from '@chakra-ui/react';
 import { LedgerId, TransferTransaction, Hbar, AccountId, TokenId, TokenAssociateTransaction } from '@hashgraph/sdk';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
@@ -20,7 +20,7 @@ const USDC_TOKEN_ID = "0.0.5680205";
 
 // Create a singleton instance outside the component for persistence
 let hashconnect: HashConnect | null = null;
-let state: HashConnectConnectionState = HashConnectConnectionState.Disconnected;
+// The state variable has been removed as it's not currently used
 
 // Debug logger for tracking connections
 const debugConnection = (message: string, data?: any) => {
@@ -58,8 +58,7 @@ export const useHashPack = () => {
   const [tokenBalances, setTokenBalances] = useState<TokenBalance[]>([]);
   const [usdcBalance, setUsdcBalance] = useState<number | null>(null);
   
-  // HashConnect specific data
-  const [pairingData, setPairingData] = useState<SessionData | null>(null);
+  // HashConnect specific data - pairingData variable removed as it's not currently used
   
   // Get USDC balance from token balances
   useEffect(() => {
@@ -152,7 +151,7 @@ export const useHashPack = () => {
       debugConnection("Pairing event received", newPairing);
       
       // Save complete pairing data
-      setPairingData(newPairing);
+      // setPairingData(newPairing);
       
       if (newPairing.accountIds && newPairing.accountIds.length > 0) {
         const connectedAccount = newPairing.accountIds[0];
@@ -167,7 +166,7 @@ export const useHashPack = () => {
     // Disconnection event
     hashconnect.disconnectionEvent.on((data) => {
       debugConnection("Disconnection event received", data);
-      setPairingData(null);
+      // setPairingData(null);
       setAccountId(null);
       setAccountBalance(null);
       setConnectionState(HashConnectConnectionState.Disconnected);
@@ -176,7 +175,6 @@ export const useHashPack = () => {
     // Connection status change event
     hashconnect.connectionStatusChangeEvent.on((connectionStatus) => {
       debugConnection("Connection status change", connectionStatus);
-      state = connectionStatus;
       setConnectionState(connectionStatus);
     });
   }, [fetchAccountBalance]);
@@ -205,7 +203,7 @@ export const useHashPack = () => {
           const pairing = initData.savedPairings[0];
           debugConnection("Found saved pairing", pairing);
           
-          setPairingData(pairing);
+          // setPairingData(pairing);
           
           if (pairing.accountIds && pairing.accountIds.length > 0) {
             const accountToSet = pairing.accountIds[0];
@@ -333,7 +331,7 @@ export const useHashPack = () => {
       debugConnection("Disconnect completed");
       
       // Clear state
-      setPairingData(null);
+      // setPairingData(null);
       setAccountId(null);
       setAccountBalance(null);
       setConnectionState(HashConnectConnectionState.Disconnected);

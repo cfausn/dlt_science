@@ -94,7 +94,6 @@ export const DonateForm: React.FC<DonateFormProps> = ({
   const [amount, setAmount] = useState(0.5);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedToken, setSelectedToken] = useState<string>('hbar');
-  const [connecting, setConnecting] = useState(false);
   const [donating, setDonating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [txId, setTxId] = useState<string | null>(null);
@@ -110,11 +109,10 @@ export const DonateForm: React.FC<DonateFormProps> = ({
     tokenBalances,
     executeTransaction,
     transactionInProgress,
-    associateToken
   } = useHashPack();
 
   const isConnected = connectionState === 'Paired';
-  const isPreparing = connecting || donating || transactionInProgress;
+  const isPreparing = donating || transactionInProgress;
 
   // Log status updates
   useEffect(() => {
