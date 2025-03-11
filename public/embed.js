@@ -140,50 +140,43 @@
       
       widgetScript.onload = function() {
         console.log('Widget script loaded successfully');
+        
+        // Debug the HederaDonationWidget object in detail
         console.log('HederaDonationWidget object:', window.HederaDonationWidget);
         
-        // Check if the module exported a createHederaDonationWidget function
-        if (window.HederaDonationWidget && window.HederaDonationWidget.createHederaDonationWidget) {
-          console.log('Using createHederaDonationWidget function');
-          window.HederaDonationWidget.createHederaDonationWidget(containerId, {
-            receiverId: config.receiverId,
-            title: config.title,
-            primaryColor: config.primaryColor,
-            showFooter: config.showFooter,
-            testnet: config.testnet,
-            maxWidth: config.maxWidth
-          });
-        } 
-        // Check if the module itself is a function (direct export)
-        else if (typeof window.HederaDonationWidget === 'function') {
-          console.log('Using HederaDonationWidget as a function');
-          window.HederaDonationWidget(containerId, {
-            receiverId: config.receiverId,
-            title: config.title,
-            primaryColor: config.primaryColor,
-            showFooter: config.showFooter,
-            testnet: config.testnet,
-            maxWidth: config.maxWidth
-          });
-        }
-        // Fallback to the initialize method
-        else if (window.HederaDonationWidget && window.HederaDonationWidget.initialize) {
-          console.log('Using initialize method');
-          window.HederaDonationWidget.initialize({
-            elementId: containerId,
-            receiverId: config.receiverId,
-            title: config.title,
-            primaryColor: config.primaryColor,
-            showFooter: config.showFooter,
-            testnet: config.testnet,
-            maxWidth: config.maxWidth
-          });
-        } else {
-          console.error('Hedera Donation Widget failed to load correctly. Window.HederaDonationWidget:', window.HederaDonationWidget);
+        if (window.HederaDonationWidget) {
+          console.log('Properties of HederaDonationWidget:');
+          for (var prop in window.HederaDonationWidget) {
+            console.log(`- ${prop}: ${typeof window.HederaDonationWidget[prop]}`);
+          }
           
-          // Try other possible initialization methods
-          if (window.createHederaDonationWidget) {
-            console.log('Found global createHederaDonationWidget function');
+          // Now try to directly access the function
+          const createFn = window.HederaDonationWidget.createHederaDonationWidget;
+          console.log('Direct access to createHederaDonationWidget:', createFn);
+          
+          if (createFn && typeof createFn === 'function') {
+            console.log('Using createHederaDonationWidget function');
+            try {
+              createFn(containerId, {
+                receiverId: config.receiverId,
+                title: config.title,
+                primaryColor: config.primaryColor,
+                showFooter: config.showFooter,
+                testnet: config.testnet,
+                maxWidth: config.maxWidth
+              });
+              console.log('Widget initialization called successfully');
+              return;
+            } catch (error) {
+              console.error('Error initializing widget:', error);
+            }
+          }
+        }
+        
+        // Try to access the function directly from the window object
+        if (window.createHederaDonationWidget && typeof window.createHederaDonationWidget === 'function') {
+          console.log('Found global createHederaDonationWidget function');
+          try {
             window.createHederaDonationWidget(containerId, {
               receiverId: config.receiverId,
               title: config.title,
@@ -192,10 +185,33 @@
               testnet: config.testnet,
               maxWidth: config.maxWidth
             });
-          } else {
-            console.error('No valid initialization method found');
+            console.log('Widget initialization called successfully');
+            return;
+          } catch (error) {
+            console.error('Error initializing widget with global function:', error);
           }
         }
+        
+        // As a last resort, try to use the default export
+        if (typeof window.HederaDonationWidget === 'function') {
+          console.log('Using HederaDonationWidget as a function');
+          try {
+            window.HederaDonationWidget(containerId, {
+              receiverId: config.receiverId,
+              title: config.title,
+              primaryColor: config.primaryColor,
+              showFooter: config.showFooter,
+              testnet: config.testnet,
+              maxWidth: config.maxWidth
+            });
+            console.log('Widget initialization called successfully');
+            return;
+          } catch (error) {
+            console.error('Error initializing widget with default export:', error);
+          }
+        }
+        
+        console.error('All widget initialization methods failed. Unable to initialize widget.');
       };
     };
     
