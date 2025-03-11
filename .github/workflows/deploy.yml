@@ -34,12 +34,7 @@ jobs:
 
       - name: Build project
         run: npm run build
-
-      - name: Copy static assets to dist
-        run: |
-          cp public/embed.js dist/
-          cp public/favicon.svg dist/
-          # No longer copying demo.html as index.html - our build process creates index.html directly
+        # The build script now handles copying demo.html as index.html, embed.js, and favicon.svg
 
       - name: Update CDN URLs
         run: |
