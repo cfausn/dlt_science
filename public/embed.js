@@ -140,8 +140,35 @@
       
       widgetScript.onload = function() {
         console.log('Widget script loaded successfully');
-        if (window.HederaDonationWidget && window.HederaDonationWidget.initialize) {
-          console.log('Initializing widget in container:', containerId);
+        console.log('HederaDonationWidget object:', window.HederaDonationWidget);
+        
+        // Check if the module exported a createHederaDonationWidget function
+        if (window.HederaDonationWidget && window.HederaDonationWidget.createHederaDonationWidget) {
+          console.log('Using createHederaDonationWidget function');
+          window.HederaDonationWidget.createHederaDonationWidget(containerId, {
+            receiverId: config.receiverId,
+            title: config.title,
+            primaryColor: config.primaryColor,
+            showFooter: config.showFooter,
+            testnet: config.testnet,
+            maxWidth: config.maxWidth
+          });
+        } 
+        // Check if the module itself is a function (direct export)
+        else if (typeof window.HederaDonationWidget === 'function') {
+          console.log('Using HederaDonationWidget as a function');
+          window.HederaDonationWidget(containerId, {
+            receiverId: config.receiverId,
+            title: config.title,
+            primaryColor: config.primaryColor,
+            showFooter: config.showFooter,
+            testnet: config.testnet,
+            maxWidth: config.maxWidth
+          });
+        }
+        // Fallback to the initialize method
+        else if (window.HederaDonationWidget && window.HederaDonationWidget.initialize) {
+          console.log('Using initialize method');
           window.HederaDonationWidget.initialize({
             elementId: containerId,
             receiverId: config.receiverId,
@@ -153,6 +180,21 @@
           });
         } else {
           console.error('Hedera Donation Widget failed to load correctly. Window.HederaDonationWidget:', window.HederaDonationWidget);
+          
+          // Try other possible initialization methods
+          if (window.createHederaDonationWidget) {
+            console.log('Found global createHederaDonationWidget function');
+            window.createHederaDonationWidget(containerId, {
+              receiverId: config.receiverId,
+              title: config.title,
+              primaryColor: config.primaryColor,
+              showFooter: config.showFooter,
+              testnet: config.testnet,
+              maxWidth: config.maxWidth
+            });
+          } else {
+            console.error('No valid initialization method found');
+          }
         }
       };
     };
