@@ -1,11 +1,41 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App'
+import App from './App.tsx'
 import './index.css'
-import { ChakraProvider } from '@chakra-ui/react'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-)
+// Function to create and export the widget
+export function createHederaDonationWidget(elementId: string, config = {}) {
+  const targetElement = document.getElementById(elementId);
+  if (!targetElement) {
+    console.error(`Element with id "${elementId}" not found.`);
+    return;
+  }
+  
+  ReactDOM.createRoot(targetElement).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+}
+
+// Auto-initialize if this is loaded in standalone mode
+if (!window.hederaDonationWidget) {
+  window.hederaDonationWidget = createHederaDonationWidget;
+  
+  // Find our root element in standalone mode
+  const rootElement = document.getElementById('root');
+  if (rootElement) {
+    ReactDOM.createRoot(rootElement).render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>,
+    );
+  }
+}
+
+// Expose the widget creation function globally
+declare global {
+  interface Window {
+    hederaDonationWidget: typeof createHederaDonationWidget;
+  }
+}

@@ -1,23 +1,42 @@
-import React from 'react';
-import { ChakraProvider, Box, Container, Heading, Text, VStack, Link, Image, Center } from '@chakra-ui/react';
+import { ChakraProvider, Box, Container, VStack, ThemeProvider, extendTheme } from '@chakra-ui/react';
 import { Widget } from './components/Widget';
 
-function App() {
+export interface WidgetConfig {
+  receiverId?: string;
+  title?: string;
+  primaryColor?: string;
+  showFooter?: boolean;
+  testnet?: boolean;
+  maxWidth?: string;
+}
+
+const defaultConfig: WidgetConfig = {
+  receiverId: "0.0.5680094", // Default recipient account
+  title: "Hedera Donation Widget",
+  primaryColor: "#00a79d", // Hedera green
+  showFooter: true,
+  testnet: true,
+  maxWidth: "500px"
+};
+
+function App(props: Partial<WidgetConfig> = {}) {
+  // Merge default config with user provided config
+  const config: WidgetConfig = { ...defaultConfig, ...props };
+  
+  // Create a custom theme with the provided primary color
+  const theme = extendTheme({
+    colors: {
+      brand: {
+        500: config.primaryColor,
+      },
+    },
+  });
+
   return (
-    <ChakraProvider>
+    <ChakraProvider theme={theme}>
       <Box bg="gray.50" minH="100vh" py={10}>
         <Container maxW="container.md">
           <VStack spacing={8} align="center">
-            <Center fontSize="5xl">🪙</Center>
-            <Heading as="h1" size="xl" textAlign="center">
-              Hedera Widget with HashPack
-            </Heading>
-            
-            <Text textAlign="center" color="gray.600" maxW="600px">
-              This widget allows you to connect to your HashPack wallet and interact with the Hedera network.
-              You can send HBAR or make donations directly from the interface.
-            </Text>
-            
             <Box
               w="100%"
               bg="white"
@@ -25,21 +44,15 @@ function App() {
               boxShadow="lg"
               overflow="hidden"
               p={[2, 4]}
+              maxWidth={config.maxWidth}
             >
-              <Widget
-                donationAddress="0.0.2"
-                projectName="Hedera Widget"
-                defaultTab={0}
+              <Widget 
+                title={config.title}
+                receiverId={config.receiverId}
+                showFooter={config.showFooter}
+                testnet={config.testnet}
               />
             </Box>
-            
-            <Text fontSize="sm" color="gray.500">
-              Note: This is running on the Hedera Testnet. Transactions will not affect your mainnet balance.
-            </Text>
-            
-            <Link href="https://docs.hedera.com/hedera" isExternal color="blue.500" fontSize="sm">
-              Learn more about Hedera
-            </Link>
           </VStack>
         </Container>
       </Box>

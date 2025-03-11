@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Box, VStack, Alert, AlertIcon, Text, Heading } from '@chakra-ui/react';
 import { WalletConnect } from './WalletConnect';
 import { DonateForm } from './DonateForm';
 import { useHashPack } from '../hooks/useHashPack';
 import { HashConnectConnectionState } from 'hashconnect';
 
-interface WidgetProps {
-  donationAddress?: string;
-  projectName?: string;
+export interface WidgetProps {
+  title?: string;
+  receiverId?: string;
+  showFooter?: boolean;
+  testnet?: boolean;
 }
 
 export const Widget: React.FC<WidgetProps> = ({
-  donationAddress = '0.0.2', // Default testnet treasury
-  projectName = 'Hedera Widget'
+  title = "Hedera Donation Widget",
+  receiverId,
+  showFooter = true,
+  testnet = true
 }) => {
   const {
     connectionState,
@@ -34,12 +38,12 @@ export const Widget: React.FC<WidgetProps> = ({
       overflow="hidden" 
       p={4} 
       boxShadow="md"
-      maxWidth="500px"
+      maxWidth="100%"
       margin="0 auto"
     >
       <VStack spacing={4} align="stretch">
         <Heading size="md" textAlign="center" mb={2}>
-          {projectName}
+          {title}
         </Heading>
         
         {/* Always show wallet connect section */}
@@ -55,10 +59,7 @@ export const Widget: React.FC<WidgetProps> = ({
         
         {/* Only show donate form when connected */}
         {canShowDonateForm ? (
-          <DonateForm 
-            donationAddress={donationAddress} 
-            projectName={projectName}
-          />
+          <DonateForm receiverId={receiverId} />
         ) : (
           <Alert status="info" borderRadius="md">
             <AlertIcon />
@@ -67,9 +68,12 @@ export const Widget: React.FC<WidgetProps> = ({
         )}
         
         {/* Footer note */}
-        <Text fontSize="xs" color="gray.500" textAlign="center" mt={2}>
-          Running on Hedera Testnet. Transactions won't affect mainnet balance.
-        </Text>
+        {showFooter && (
+          <Text fontSize="xs" color="gray.500" textAlign="center" mt={2}>
+            Running on Hedera {testnet ? 'Testnet' : 'Mainnet'}. 
+            {testnet && ' Transactions won\'t affect mainnet balance.'}
+          </Text>
+        )}
       </VStack>
     </Box>
   );

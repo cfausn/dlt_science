@@ -1,23 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import {
   Button,
-  VStack,
   HStack,
   Text,
-  Alert,
-  AlertIcon,
   Box,
   Spinner,
-  Link,
   useToast,
-  ButtonGroup,
   Flex,
   Tooltip,
   Badge,
-  Divider,
 } from '@chakra-ui/react';
 import { useHashPack } from '../hooks/useHashPack';
-import { ExternalLinkIcon, RepeatIcon } from '@chakra-ui/icons';
 import { HashConnectConnectionState } from 'hashconnect';
 
 // Debug logger for wallet connection

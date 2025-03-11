@@ -2,20 +2,32 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     nodePolyfills({
-      include: ['buffer', 'crypto', 'util', 'stream'],
-      globals: {
-        Buffer: true,
-        global: true,
-        process: true,
-      },
+      include: ['buffer', 'stream', 'events', 'crypto'],
+      exclude: []
     }),
   ],
-  define: {
-    'process.env': {},
-  },
+  // Configure build options for the library output
+  build: {
+    lib: {
+      entry: 'src/main.tsx',
+      name: 'HederaDonationWidget',
+      fileName: (format) => `hedera-widget.${format}.js`,
+      formats: ['umd', 'es']
+    },
+    rollupOptions: {
+      // Make React and ReactDOM external
+      external: ['react', 'react-dom'],
+      output: {
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM'
+        }
+      }
+    }
+  }
 })

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { HashConnect, HashConnectConnectionState, SessionData } from 'hashconnect';
 import { useToast, Box, Text, Link } from '@chakra-ui/react';
 import { LedgerId, TransferTransaction, Hbar, AccountId, TokenId, TokenAssociateTransaction } from '@hashgraph/sdk';

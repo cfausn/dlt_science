@@ -7,18 +7,15 @@ import {
   Text,
   useToast,
   Box,
-  Spinner,
   Alert,
   AlertIcon,
   Link,
-  Heading,
   NumberInput,
   NumberInputField,
   NumberInputStepper,
   NumberIncrementStepper,
   NumberDecrementStepper,
   Progress,
-  Input,
   Radio,
   RadioGroup,
   Stack,
@@ -28,14 +25,6 @@ import {
 } from '@chakra-ui/react'
 import { useHashPack } from '../hooks/useHashPack'
 import { ExternalLinkIcon } from '@chakra-ui/icons'
-import { HashConnectConnectionState } from 'hashconnect';
-
-// Define transaction steps
-const steps = [
-  { title: 'Prepare', description: 'Donation details' },
-  { title: 'Sign', description: 'Approve in HashPack' },
-  { title: 'Submit', description: 'Send to network' },
-]
 
 // Props interface
 interface DonateFormProps {
@@ -335,15 +324,13 @@ export const DonateForm: React.FC<DonateFormProps> = ({
     if (selectedToken === 'hbar') {
       return `Donate ${amount || 0} HBAR`;
     } else {
-      return `Donate ${amount || 0} USDC`; // No longer need to specify 'Units'
+      return `Donate ${amount || 0} USDC`;
     }
   };
 
-  // Handle associating USDC token
   const handleAssociateUsdc = async () => {
     try {
       setErrorMsg(null);
-      const result = await associateToken(USDC_TOKEN_ID);
       toast({
         title: 'Association Complete',
         description: 'Your account is now associated with USDC. You can now donate using USDC.',
@@ -356,16 +343,14 @@ export const DonateForm: React.FC<DonateFormProps> = ({
     }
   };
 
-  // Update the token change handler to reset inputString
   const handleTokenChange = (value: string) => {
     setSelectedToken(value);
     setInputString('');
     
-    // Reset the amount based on selected token
     if (value === 'hbar') {
       setAmount(0.5);
     } else if (value === USDC_TOKEN_ID && selectedToken !== USDC_TOKEN_ID) {
-      setAmount(1);
+      setAmount(0.5);
     }
   };
 
@@ -374,7 +359,6 @@ export const DonateForm: React.FC<DonateFormProps> = ({
       <VStack spacing={4} align="stretch">
         {progress > 0 && <Progress value={progress} colorScheme="purple" size="sm" />}
         
-        {/* Error message */}
         {errorMsg && (
           <Alert status="error">
             <AlertIcon />
@@ -382,7 +366,6 @@ export const DonateForm: React.FC<DonateFormProps> = ({
           </Alert>
         )}
         
-        {/* Success message with transaction details */}
         {txSuccess && txId && (
           <Alert status="success" borderRadius="md">
             <AlertIcon />
@@ -396,7 +379,6 @@ export const DonateForm: React.FC<DonateFormProps> = ({
           </Alert>
         )}
 
-        {/* Token selector */}
         <FormControl>
           <FormLabel>Select Token</FormLabel>
           <RadioGroup 
@@ -423,7 +405,6 @@ export const DonateForm: React.FC<DonateFormProps> = ({
           </RadioGroup>
         </FormControl>
         
-        {/* Balance Display */}
         {isConnected && (
           <Box w="100%" p={2} bg="gray.50" borderRadius="md">
             <Text fontSize="sm" color="gray.500">
@@ -442,22 +423,17 @@ export const DonateForm: React.FC<DonateFormProps> = ({
             <NumberInput
               value={inputString || formatNumberWithoutTrailingZeroes(amount)}
               onChange={(valueString) => {
-                // Store the raw string input while typing
                 setInputString(valueString);
                 
-                // Handle special cases for decimal input
                 if (valueString === '' || valueString === '.') {
-                  // Don't convert empty string or lone decimal point
                   return;
                 }
                 
-                // Try to parse as a number
                 const parsedValue = parseFloat(valueString);
                 if (!isNaN(parsedValue)) {
                   setAmount(parsedValue);
                 }
               }}
-              // When input loses focus, update the actual amount and clear inputString
               onBlur={() => {
                 if (inputString) {
                   const parsedValue = parseFloat(inputString);
@@ -469,11 +445,9 @@ export const DonateForm: React.FC<DonateFormProps> = ({
               }}
               min={0.000001}
               max={accountBalance || undefined}
-              // Don't show precision while typing, but keep validation precision
               format={value => value}
               step={0.1}
               isDisabled={isPreparing}
-              // Allow free-form input during typing
               keepWithinRange={false}
               clampValueOnBlur={true}
             >
@@ -487,12 +461,10 @@ export const DonateForm: React.FC<DonateFormProps> = ({
             <NumberInput
               value={inputString || formatNumberWithoutTrailingZeroes(amount)}
               onChange={(valueString) => {
-                // Store the raw string input while typing
                 setInputString(valueString);
                 
                 // Handle special cases for decimal input
                 if (valueString === '' || valueString === '.') {
-                  // Don't convert empty string or lone decimal point
                   return;
                 }
                 
@@ -502,7 +474,6 @@ export const DonateForm: React.FC<DonateFormProps> = ({
                   setAmount(parsedValue);
                 }
               }}
-              // When input loses focus, update the actual amount and clear inputString
               onBlur={() => {
                 if (inputString) {
                   const parsedValue = parseFloat(inputString);
@@ -514,11 +485,9 @@ export const DonateForm: React.FC<DonateFormProps> = ({
               }}
               min={0.00000001}
               max={usdcBalance || undefined}
-              // Don't show precision while typing, but keep validation precision
               format={value => value}
               step={0.1}
               isDisabled={isPreparing}
-              // Allow free-form input during typing
               keepWithinRange={false}
               clampValueOnBlur={true}
             >
@@ -531,18 +500,16 @@ export const DonateForm: React.FC<DonateFormProps> = ({
           )}
           <Text fontSize="xs" color="gray.500" mt={1}>
             {selectedToken === 'hbar' 
-              ? 'Enter HBAR amount with decimals (e.g. 0.5 HBAR)' 
-              : 'Enter USDC amount with up to 8 decimal places'}
+              ? 'Enter HBAR amount' 
+              : 'Enter USDC amount'}
           </Text>
         </FormControl>
         
-        {/* Recipient info */}
         <HStack>
           <Badge colorScheme="purple">Recipient:</Badge>
           <Text fontSize="sm">{receiverId}</Text>
         </HStack>
         
-        {/* Submit button */}
         <Button 
           onClick={isConnected ? handleDonate : connect}
           colorScheme="purple"
