@@ -7,12 +7,27 @@ import { ExternalLinkIcon } from '@chakra-ui/icons';
 // Constants for the Widget
 const GITHUB_PAGES_URL = "https://cfausn.github.io/dlt_science";
 
-// HashConnect App metadata - NEVER CHANGE THIS URL
+// Helper function to get the appropriate URL based on environment
+function getAppUrl() {
+  // Check if we're running locally
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost' || 
+      /^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname)) {
+    // Local development - use current origin
+    console.log("Using local URL for HashConnect:", window.location.origin);
+    return window.location.origin;
+  }
+  
+  // Default to GitHub Pages URL for production
+  console.log("Using GitHub Pages URL for HashConnect:", GITHUB_PAGES_URL);
+  return GITHUB_PAGES_URL;
+}
+
+// HashConnect App metadata - dynamically select URL based on environment
 const appMetadata = {
   name: "Hedera Widget",
   description: "A donation widget for Hedera",
   icons: ["https://www.hashpack.app/img/favicon.png"],
-  url: GITHUB_PAGES_URL // Use our GitHub Pages URL consistently
+  url: getAppUrl() // Dynamic URL based on environment
 };
 
 // WalletConnect project ID - from the docs
@@ -192,23 +207,15 @@ export const useHashPack = () => {
         if (!hashconnect) {
           console.log("Creating new HashConnect instance with metadata:", {...appMetadata});
           
-          // Create our custom metadata object that enforces our GitHub Pages URL
-          const metadataWithEnforcedUrl = {
-            ...appMetadata,
-            url: GITHUB_PAGES_URL  // Ensure URL is always our GitHub Pages URL
-          };
-          
           try {
-            // Create the HashConnect instance with our fixed URL metadata
-            hashconnect = new HashConnect(LedgerId.TESTNET, PROJECT_ID, metadataWithEnforcedUrl, true);
+            // Create the HashConnect instance with our metadata
+            hashconnect = new HashConnect(LedgerId.TESTNET, PROJECT_ID, appMetadata, true);
             console.log("HashConnect constructor completed successfully");
             
-            // Use type assertion to log the metadata
+            // Log the metadata being used
             const hashconnectAny = hashconnect as any;
             if (hashconnectAny && hashconnectAny.metadata) {
-              // CRITICAL: Force the URL to be correct after construction
-              hashconnectAny.metadata.url = GITHUB_PAGES_URL;
-              console.log("Final metadata being used:", hashconnectAny.metadata);
+              console.log("Metadata being used:", hashconnectAny.metadata);
             }
           } catch (initError) {
             console.error("Error in HashConnect constructor:", initError);
@@ -220,40 +227,16 @@ export const useHashPack = () => {
         // Setup events before initialization
         setupHashConnectEvents();
         
-        // IMPORTANT: Override the HashConnect _makeLink method to ensure our URL is used
-        // This is a hack but necessary to prevent HashConnect from using the local URL
-        const hashconnectAny = hashconnect as any;
-        if (hashconnectAny && hashconnectAny._makeLink) {
-          const originalMakeLink = hashconnectAny._makeLink;
-          hashconnectAny._makeLink = function(...args: any[]) {
-            // Force the metadata URL right before any link generation
-            if (hashconnectAny.metadata) {
-              hashconnectAny.metadata.url = GITHUB_PAGES_URL;
-              console.log("Forced metadata URL in _makeLink to:", GITHUB_PAGES_URL);
-            }
-            return originalMakeLink.apply(this, args);
-          };
-          console.log("Overrode _makeLink method to enforce GitHub Pages URL");
-        }
-        
-        // Initialize HashConnect with debugging
+        // Initialize HashConnect
         let initData: any;
         try {
           console.log("About to call hashconnect.init()");
-          
-          // Force the URL one more time before init
-          if (hashconnectAny && hashconnectAny.metadata) {
-            hashconnectAny.metadata.url = GITHUB_PAGES_URL;
-            console.log("Forced metadata URL before init to:", GITHUB_PAGES_URL);
-          }
-          
           initData = await hashconnect.init();
           console.log("HashConnect init() completed successfully");
           
-          // Force the URL again after init since the library might have changed it
+          // Log the final state after initialization
+          const hashconnectAny = hashconnect as any;
           if (hashconnectAny && hashconnectAny.metadata) {
-            hashconnectAny.metadata.url = GITHUB_PAGES_URL;
-            console.log("Forced metadata URL after init to:", GITHUB_PAGES_URL);
             console.log("Post-init metadata:", hashconnectAny.metadata);
           }
         } catch (initError) {
@@ -337,13 +320,8 @@ export const useHashPack = () => {
       console.log("HashConnect instance:", hashconnect);
       console.log("HashConnect methods available:", Object.keys(hashconnect));
       
-      // Force the correct URL in the metadata
       const hashconnectAny = hashconnect as any;
       if (hashconnectAny && hashconnectAny.metadata) {
-        // CRITICAL FIX: Force the metadata URL to be our GitHub Pages URL
-        // This prevents the library from using the local URL which causes connection issues
-        hashconnectAny.metadata.url = GITHUB_PAGES_URL;
-        console.log("FORCED metadata URL to:", GITHUB_PAGES_URL);
         console.log("App metadata being used:", hashconnectAny.metadata);
       } else {
         console.log("App metadata being used:", appMetadata);
@@ -351,17 +329,8 @@ export const useHashPack = () => {
       
       setConnectionState(HashConnectConnectionState.Connecting);
       
-      // DISABLED: The extension detection was causing false negatives
-      // We'll let HashConnect's own error handling take care of this instead
-      // Just attempt to open the pairing modal directly
-      
       // Open the pairing modal with additional logging
       try {
-        // One more check to ensure the URL is correct
-        if (hashconnectAny && hashconnectAny.metadata) {
-          hashconnectAny.metadata.url = GITHUB_PAGES_URL;
-        }
-        
         hashconnect.openPairingModal();
         debugConnection("Pairing modal opened successfully");
       } catch (modalError) {
