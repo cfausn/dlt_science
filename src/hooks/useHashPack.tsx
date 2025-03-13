@@ -4,12 +4,15 @@ import { useToast, Box, Text, Link } from '@chakra-ui/react';
 import { LedgerId, TransferTransaction, Hbar, AccountId, TokenId, TokenAssociateTransaction } from '@hashgraph/sdk';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 
-// HashConnect App metadata
+// Constants for the Widget
+const GITHUB_PAGES_URL = "https://cfausn.github.io/dlt_science";
+
+// HashConnect App metadata - NEVER CHANGE THIS URL
 const appMetadata = {
   name: "Hedera Widget",
   description: "A donation widget for Hedera",
   icons: ["https://www.hashpack.app/img/favicon.png"],
-  url: "https://cfausn.github.io/dlt_science" // Use our GitHub Pages URL consistently
+  url: GITHUB_PAGES_URL // Use our GitHub Pages URL consistently
 };
 
 // WalletConnect project ID - from the docs
@@ -187,11 +190,24 @@ export const useHashPack = () => {
         
         // Create a fresh instance with more robust initialization
         if (!hashconnect) {
-          console.log("Creating new HashConnect instance with metadata:", appMetadata);
+          console.log("Creating new HashConnect instance with metadata:", {...appMetadata});
+          
+          // Create our custom metadata object that enforces our GitHub Pages URL
+          const metadataWithEnforcedUrl = {
+            ...appMetadata,
+            url: GITHUB_PAGES_URL  // Ensure URL is always our GitHub Pages URL
+          };
+          
           try {
-            // Use a simpler initialization approach
-            hashconnect = new HashConnect(LedgerId.TESTNET, PROJECT_ID, appMetadata, true);
+            // Create the HashConnect instance with our fixed URL metadata
+            hashconnect = new HashConnect(LedgerId.TESTNET, PROJECT_ID, metadataWithEnforcedUrl, true);
             console.log("HashConnect constructor completed successfully");
+            
+            // Use type assertion to log the metadata
+            const hashconnectAny = hashconnect as any;
+            if (hashconnectAny && hashconnectAny.metadata) {
+              console.log("Final metadata being used:", hashconnectAny.metadata);
+            }
           } catch (initError) {
             console.error("Error in HashConnect constructor:", initError);
             throw initError;
@@ -208,6 +224,12 @@ export const useHashPack = () => {
           console.log("About to call hashconnect.init()");
           initData = await hashconnect.init();
           console.log("HashConnect init() completed successfully");
+          
+          // Log the final state after initialization
+          const hashconnectAny = hashconnect as any;
+          if (hashconnectAny && hashconnectAny.metadata) {
+            console.log("Post-init metadata:", hashconnectAny.metadata);
+          }
         } catch (initError) {
           console.error("Error in hashconnect.init():", initError);
           throw initError;
@@ -219,8 +241,6 @@ export const useHashPack = () => {
         if (initData && initData.savedPairings && initData.savedPairings.length > 0) {
           const pairing = initData.savedPairings[0];
           debugConnection("Found saved pairing", pairing);
-          
-          // setPairingData(pairing);
           
           if (pairing.accountIds && pairing.accountIds.length > 0) {
             const accountToSet = pairing.accountIds[0];
@@ -290,9 +310,21 @@ export const useHashPack = () => {
       debugConnection("Opening HashPack connection modal...");
       console.log("HashConnect instance:", hashconnect);
       console.log("HashConnect methods available:", Object.keys(hashconnect));
-      console.log("App metadata being used:", appMetadata);
+      const hashconnectAny = hashconnect as any;
+      if (hashconnectAny && hashconnectAny.metadata) {
+        console.log("App metadata being used:", hashconnectAny.metadata);
+      } else {
+        console.log("App metadata being used:", appMetadata);
+      }
       
       setConnectionState(HashConnectConnectionState.Connecting);
+      
+      // Check if HashPack is installed
+      const isExtensionInstalled = await detectHashPackExtension();
+      if (!isExtensionInstalled) {
+        debugConnection("HashPack extension not detected");
+        throw new Error("HashPack extension not detected");
+      }
       
       // Open the pairing modal with additional logging
       try {
@@ -313,6 +345,7 @@ export const useHashPack = () => {
       console.error("Error connecting to HashPack:", error);
       setConnectionState(HashConnectConnectionState.Disconnected);
       
+      // Show a user-friendly error message
       toast({
         title: 'Connection Failed',
         description: 'Could not connect to HashPack. Is the extension installed?',
@@ -340,6 +373,33 @@ export const useHashPack = () => {
       });
     }
   }, [toast]);
+  
+  // Helper function to detect if HashPack extension is installed
+  const detectHashPackExtension = async (): Promise<boolean> => {
+    // Check if the hashconnect global object exists
+    if ('hashconnect' in window) {
+      console.log("HashPack extension detected via global object");
+      return true;
+    }
+    
+    // Check if we can send a message to the extension
+    try {
+      // Create an event that hashpack might respond to
+      const event = new CustomEvent('hashpack-detect', {
+        detail: { ping: true }
+      });
+      window.dispatchEvent(event);
+      
+      // Wait a short time to see if hashpack responds
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // If we got this far without error, assume it's not installed
+      return false;
+    } catch (error) {
+      console.error("Error detecting HashPack:", error);
+      return false;
+    }
+  };
   
   // Disconnect from HashPack
   const disconnect = useCallback(async () => {

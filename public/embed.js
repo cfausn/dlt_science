@@ -59,6 +59,26 @@
       `;
     });
   }
+  
+  // Show a message when HashPack isn't installed
+  function showHashPackInstallMessage(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = `
+      <div style="border: 1px solid #f8d7da; border-radius: 4px; padding: 20px; background-color: #fff; color: #721c24; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto;">
+        <h3 style="margin: 0 0 15px; color: #721c24; font-size: 18px;">HashPack Wallet Required</h3>
+        <p style="margin: 0 0 12px; font-size: 14px;">This donation widget requires the HashPack wallet extension to be installed.</p>
+        <p style="margin: 0 0 5px; font-size: 14px;">Please:</p>
+        <ol style="margin: 0 0 15px; padding-left: 20px; font-size: 14px;">
+          <li>Install the HashPack wallet extension</li>
+          <li>Create or import a Hedera account</li>
+          <li>Refresh this page</li>
+        </ol>
+        <a href="https://www.hashpack.app/download" target="_blank" style="display: inline-block; background-color: #8257e5; color: white; font-weight: bold; padding: 10px 16px; text-decoration: none; border-radius: 4px; font-size: 14px;">Install HashPack Wallet</a>
+      </div>
+    `;
+  }
 
   // Check if the current script was loaded from GitHub Pages
   function isLoadedFromGitHubPages() {
@@ -83,14 +103,44 @@
     urlParts.pop(); // Remove the script filename
     return urlParts.join('/');
   }
+  
+  // Check if HashPack is installed
+  function detectHashPackExtension() {
+    // Try to detect if the hashpack extension is injecting a global object
+    return new Promise((resolve) => {
+      // Check if it's already available
+      if (window.hashconnect || document.querySelector('[id^="hashconnect"]')) {
+        console.log("HashPack extension detected");
+        return resolve(true);
+      }
+      
+      // Wait for it to potentially load
+      setTimeout(() => {
+        if (window.hashconnect || document.querySelector('[id^="hashconnect"]')) {
+          console.log("HashPack extension detected after delay");
+          return resolve(true);
+        }
+        console.log("HashPack extension not detected");
+        resolve(false);
+      }, 1000);
+    });
+  }
 
   // Main initialization function
-  window.initHederaDonationWidget = function(customConfig = {}) {
+  window.initHederaDonationWidget = async function(customConfig = {}) {
     // Merge configurations
     const config = { ...defaultConfig, ...customConfig };
     
     // Create container
     const containerId = createContainer(config);
+    
+    // Check if HashPack is installed
+    const hasExtension = await detectHashPackExtension();
+    if (!hasExtension) {
+      console.log("HashPack extension not detected, showing install message");
+      showHashPackInstallMessage(containerId);
+      return;
+    }
     
     // Determine the base URL for resources
     const baseUrl = getBaseUrl();
