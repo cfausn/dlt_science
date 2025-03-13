@@ -95,19 +95,12 @@
 
   // Auto-detect base URL if using known CDN or GitHub Pages
   function getBaseUrl() {
-    // If we're running locally, use the current origin
-    if (isLocalEnvironment()) {
-      console.log("Using local origin for resources:", window.location.origin);
-      return window.location.origin;
-    }
-    
-    // If script was loaded from GitHub Pages, use the GitHub Pages URL
+    // If script was loaded from GitHub Pages, always use the GitHub Pages URL
     if (isLoadedFromGitHubPages()) {
-      console.log("Using GitHub Pages URL for resources:", GITHUB_PAGES_URL);
       return GITHUB_PAGES_URL;
     }
     
-    // For other environments
+    // For local development or other environments
     const scripts = document.getElementsByTagName('script');
     const currentScript = scripts[scripts.length - 1];
     const currentScriptUrl = currentScript.src;
@@ -159,18 +152,9 @@
     
     // Function to load the widget script
     const loadWidget = function() {
-      // Use the appropriate URL for the UMD file based on environment
-      let widgetUrl;
-      
-      if (isLocalEnvironment()) {
-        // For local development, use local origin
-        widgetUrl = baseUrl + '/hedera-widget.umd.js';
-        console.log("Loading UMD from local environment:", widgetUrl);
-      } else {
-        // For production/GitHub Pages, use the GitHub Pages URL
-        widgetUrl = GITHUB_PAGES_URL + '/hedera-widget.umd.js';
-        console.log("Loading UMD from GitHub Pages:", widgetUrl);
-      }
+      // ALWAYS use the absolute URL from GitHub Pages for the UMD file
+      // This ensures it works when embedded in any website
+      const widgetUrl = GITHUB_PAGES_URL + '/hedera-widget.umd.js';
       
       const widgetScript = loadScript(widgetUrl);
       
