@@ -3,15 +3,21 @@
   // DO NOT MODIFY THIS URL - IT MUST BE EXACT
   const GITHUB_PAGES_URL = 'https://cfausn.github.io/dlt_science';
   
-  // Default configuration
+  // Default configuration for the Hedera Donation Widget
   const defaultConfig = {
-    containerId: 'hedera-donation-widget',
-    receiverId: '0.0.5680094',
-    title: 'Hedera Donation Widget',
-    primaryColor: '#00a79d',
-    showFooter: true,
-    testnet: true,
-    maxWidth: '500px'
+    containerId: 'hedera-donation-widget', // Default container ID
+    target: '0.0.29749356',                // Default HBAR token recipient account ID
+    targetUsdc: '0.0.29749356',            // Default USDC token recipient account ID
+    chain: 'testnet',                      // Default network (testnet/mainnet)
+    type: 'standard',                      // Default widget display type ('standard' or 'compact')
+    position: 'center',                    // Default widget alignment ('left', 'center', 'right')
+    width: '400px',                        // Default widget width
+    maxWidth: '100%',                      // Default maximum width
+    backgroundColor: 'white',              // Default background color
+    title: 'Donate to Our Cause',          // Default widget title
+    subtitle: 'Help us with your donation', // Default subtitle
+    primaryColor: '#8257e5',               // Default primary button color
+    footerText: 'Thank you for your support!' // Default footer text
   };
 
   // Create container if it doesn't exist
@@ -86,21 +92,8 @@
            /^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname);
   }
 
-  // Check if the current script was loaded from GitHub Pages
-  function isLoadedFromGitHubPages() {
-    const scripts = document.getElementsByTagName('script');
-    const currentScript = scripts[scripts.length - 1];
-    return currentScript && currentScript.src && currentScript.src.includes('github.io');
-  }
-
-  // Auto-detect base URL if using known CDN or GitHub Pages
+  // Get base URL based on current script location
   function getBaseUrl() {
-    // If script was loaded from GitHub Pages, always use the GitHub Pages URL
-    if (isLoadedFromGitHubPages()) {
-      return GITHUB_PAGES_URL;
-    }
-    
-    // For local development or other environments
     const scripts = document.getElementsByTagName('script');
     const currentScript = scripts[scripts.length - 1];
     const currentScriptUrl = currentScript.src;
@@ -152,9 +145,8 @@
     
     // Function to load the widget script
     const loadWidget = function() {
-      // ALWAYS use the absolute URL from GitHub Pages for the UMD file
-      // This ensures it works when embedded in any website
-      const widgetUrl = GITHUB_PAGES_URL + '/hedera-widget.umd.js';
+      // Use the dynamic baseUrl for loading the widget
+      const widgetUrl = baseUrl + '/hedera-widget.umd.js';
       
       const widgetScript = loadScript(widgetUrl);
       
