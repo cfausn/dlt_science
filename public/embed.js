@@ -145,8 +145,9 @@
     
     // Function to load the widget script
     const loadWidget = function() {
-      // Use the dynamic baseUrl for loading the widget
-      const widgetUrl = baseUrl + '/hedera-widget.umd.js';
+      // ALWAYS use the absolute URL from GitHub Pages for the UMD file
+      // This ensures it works when embedded in any website
+      const widgetUrl = GITHUB_PAGES_URL + '/hedera-widget.umd.js';
       
       const widgetScript = loadScript(widgetUrl);
       
