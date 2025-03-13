@@ -319,12 +319,9 @@ export const useHashPack = () => {
       
       setConnectionState(HashConnectConnectionState.Connecting);
       
-      // Check if HashPack is installed
-      const isExtensionInstalled = await detectHashPackExtension();
-      if (!isExtensionInstalled) {
-        debugConnection("HashPack extension not detected");
-        throw new Error("HashPack extension not detected");
-      }
+      // DISABLED: The extension detection was causing false negatives
+      // We'll let HashConnect's own error handling take care of this instead
+      // Just attempt to open the pairing modal directly
       
       // Open the pairing modal with additional logging
       try {
@@ -373,33 +370,6 @@ export const useHashPack = () => {
       });
     }
   }, [toast]);
-  
-  // Helper function to detect if HashPack extension is installed
-  const detectHashPackExtension = async (): Promise<boolean> => {
-    // Check if the hashconnect global object exists
-    if ('hashconnect' in window) {
-      console.log("HashPack extension detected via global object");
-      return true;
-    }
-    
-    // Check if we can send a message to the extension
-    try {
-      // Create an event that hashpack might respond to
-      const event = new CustomEvent('hashpack-detect', {
-        detail: { ping: true }
-      });
-      window.dispatchEvent(event);
-      
-      // Wait a short time to see if hashpack responds
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // If we got this far without error, assume it's not installed
-      return false;
-    } catch (error) {
-      console.error("Error detecting HashPack:", error);
-      return false;
-    }
-  };
   
   // Disconnect from HashPack
   const disconnect = useCallback(async () => {

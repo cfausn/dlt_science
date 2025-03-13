@@ -104,26 +104,12 @@
     return urlParts.join('/');
   }
   
-  // Check if HashPack is installed
+  // IMPORTANT: This detection is NOT RELIABLE, so we disable it by default
+  // We'll let the widget's internal error handling take care of installation issues
   function detectHashPackExtension() {
-    // Try to detect if the hashpack extension is injecting a global object
-    return new Promise((resolve) => {
-      // Check if it's already available
-      if (window.hashconnect || document.querySelector('[id^="hashconnect"]')) {
-        console.log("HashPack extension detected");
-        return resolve(true);
-      }
-      
-      // Wait for it to potentially load
-      setTimeout(() => {
-        if (window.hashconnect || document.querySelector('[id^="hashconnect"]')) {
-          console.log("HashPack extension detected after delay");
-          return resolve(true);
-        }
-        console.log("HashPack extension not detected");
-        resolve(false);
-      }, 1000);
-    });
+    // We're assuming HashPack is installed by default since detection is unreliable
+    // The widget will show appropriate errors if it's not actually present
+    return Promise.resolve(true);
   }
 
   // Main initialization function
@@ -134,13 +120,8 @@
     // Create container
     const containerId = createContainer(config);
     
-    // Check if HashPack is installed
-    const hasExtension = await detectHashPackExtension();
-    if (!hasExtension) {
-      console.log("HashPack extension not detected, showing install message");
-      showHashPackInstallMessage(containerId);
-      return;
-    }
+    // NOTE: We're skipping HashPack detection because it was causing false negatives
+    // Let the widget's own error handling handle missing extension issues
     
     // Determine the base URL for resources
     const baseUrl = getBaseUrl();
